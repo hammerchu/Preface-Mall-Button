@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Video playback from folder')
-    parser.add_argument('folder_path', type=str, help='Path to folder containing video files')
+    parser.add_argument('folder_path', '-f', type=str, help='Path to folder containing video files')
     args = parser.parse_args()
     folder_path = args.folder_path
     playback = Playback(folder_path)
