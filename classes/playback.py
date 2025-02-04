@@ -58,11 +58,11 @@ class Playback:
             final_clip = concatenate_videoclips(self.clips, method="compose")
             
             # Play the final clip
-            final_clip.preview(fps=self.fps, is_fullscreen=self.is_full_screen) # play the video
+            final_clip.preview(fps=self.fps) # play the video
 
             if self.next:
                 '''when user press q, set the clips to the next video (C.mp4 in this case)'''
-                video_path = f"/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C.mp4"
+                video_path = f"/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A.mp4"
                 clip = VideoFileClip(video_path)#.subclip(0, 3)
                 self.clips = [clip.fadein(0.5).fadeout(0.5)]
                 self.next = False # reset the flag
@@ -84,10 +84,11 @@ if __name__ == "__main__":
 
 
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Video playback from folder')
-    parser.add_argument('folder_path', '-f', type=str, help='Path to folder containing video files')
-    args = parser.parse_args()
-    folder_path = args.folder_path
+    # parser = argparse.ArgumentParser(description='Video playback from folder')
+    # parser.add_argument('folder_path', '-f', type=str, help='Path to folder containing video files')
+    # args = parser.parse_args()
+    # folder_path = args.folder_path
+    folder_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/play_this_folder"
     playback = Playback(folder_path)
     playback.start()
 
