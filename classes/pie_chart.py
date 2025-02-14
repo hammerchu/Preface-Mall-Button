@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib import animation
-
+import time
 
 class PieChart:
     def __init__(self, data:list[tuple[str, int]], colors:list[str], duration:int, video_path:str):
@@ -31,12 +31,14 @@ class PieChart:
             # Start from 0 and increment to reach target
             step = (self.init_sizes[i] - target) / self.duration
             self.step_sizes.append(step)
-        print(f'init_sizes: {self.init_sizes}')
-        print(f'step_sizes: {self.step_sizes}')
-
+        # print(f'init_sizes: {self.init_sizes}')
+        # print(f'step_sizes: {self.step_sizes}')
+        start_time = time.time()
         writer = animation.FFMpegWriter(fps=25)
         self.anim = animation.FuncAnimation(self.fig, self.animate, frames=self.duration, repeat=False, interval=25, blit=False)
         self.anim.save(self.video_path, writer=writer)
+        end_time = time.time()
+        print(f"Time taken to save video: {end_time - start_time:.2f} seconds")
 
     def animate(self, i):
         """Animate pie chart with easing out effect"""
