@@ -1,14 +1,18 @@
-from classes.pie_chart import PieChart
-import time
+from classes.cv2_playback import CV2Player
+from classes.yolo import Eyes
 
 
-'''Example of how can you use the PieChart class'''
+if __name__ == "__main__":
+    yolo = Eyes()
 
-data = [('Americano', 50), ('Flat white', 40), ('Latte', 10)]
-colors = ['darkred', 'green', 'pink']
-duration = 35
-video_path = 'pie_animation_drinks.mp4'
+    video_paths = [
+        # "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A.mp4",
+        # "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B.mp4",
+        "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4"
+    ]
 
-s = time.time()
-pie_chart = PieChart(data, colors, duration, video_path)
-print(f'Time taken: {time.time() - s}')
+    player = CV2Player(video_paths) 
+    player.play_playlist()
+
+
+
