@@ -58,7 +58,7 @@ class PieChart:
             end = self.sizes[j]
             current = start + (end - start) * ease
             current_sizes.append(current)
-            print(f'i: {i}, section {j}: {current}')
+            # print(f'i: {i}, section {j}: {current}')
 
         self.patches = plt.pie(current_sizes, colors=self.colors, startangle=90, shadow=True,
                      labels=self.labels, autopct='%1.0f%%',
