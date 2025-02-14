@@ -7,12 +7,12 @@ from ultralytics import YOLO
 
 class Eyes:
     def __init__(self) -> None:
-        self.yolo_result = None
+        self.yolo_result = None # the result of the yolo detection
         self.yolo_fps = 3 # how many frames per second to run the yolo detection
         self.yolo_model = YOLO("yolo11n.pt") # decide what model to use, n is the lightweight model
 
         self.done = False
-        self.max_run_time = 1000
+        self.max_run_time = 100000
         self.frame = None
         self.read_thread = threading.Thread(target=self.read_frame)
         self.read_thread.start()
@@ -41,7 +41,7 @@ class Eyes:
 
         start_time = time.time()
         while not self.done:
-            print("reading frame")
+            # print("reading frame")
             # Read a frame from the camera
             ret_, self.frame = cap_.read()
             s = time.time()
@@ -54,6 +54,9 @@ class Eyes:
             duration = time.time() - start_time
             diff = time.time() - s
             time.sleep(max(0, 1/self.yolo_fps*1.5 - diff))
+            # print("="*100)
+            # print(f"sleep: {max(0, 1/self.yolo_fps*1.5 - diff):.2f}s | fps: {1/diff:.2f}")
+            # print("="*100)
             if duration > self.max_run_time*60: # stop the program when it reach max run time
                 self.done = True
                 break
@@ -83,7 +86,9 @@ class Eyes:
                     )
 
                 diff = time.time() - s
-                print(f"time: {diff:.2f}s | FPS: {1/diff:.2f}")
+                print("-"*100)
+                print(f"YOLO | sleep: {max(0, 1/self.yolo_fps - diff):.2f}s (target: {1/self.yolo_fps:.2f}s) | fps: {1/diff:.2f}")
+                print("-"*100)
                 time.sleep(max(0, 1/self.yolo_fps - diff))
 
         print("YOLO detection done")
