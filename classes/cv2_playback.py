@@ -74,10 +74,10 @@ class CV2Player:
                 elif key == ord('f'):
                     self.toggle_fullscreen()
                 elif key == ord('q'):
-                    self.add_video('/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/D_8.mp4', play_immediately=True)
+                    self.add_video('./footages/D_8.mp4', play_immediately=True)
                     self.show_message("Added video (play immediately)") #for dev
                 elif key == ord('w'):
-                    self.add_video('/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/D_8.mp4', play_immediately=False)
+                    self.add_video('./footages/D_8.mp4', play_immediately=False)
                     self.show_message("Added video (play after current)") #for dev
                 
                 # Check if next video needs immediate playback
