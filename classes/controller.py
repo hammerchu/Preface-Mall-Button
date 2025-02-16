@@ -5,7 +5,7 @@ from pynput import keyboard
 import os
 from yolo import Eyes
 from pie_chart import PieChart
-
+from cv2_playback import CV2Player
 
 class VideoController:
     """
@@ -43,6 +43,9 @@ class VideoController:
         self.timers = {}  # Store timing information
         self.keyboard_listener = None  # Keyboard input handler
         self.statistics_duration = 10  # Duration to show statistics in seconds
+
+        CLIP_A = os.path.join(self.folder_path, "A.mp4") # #TODO (NEW)initialize player with CLIP A
+        self.cv2_player = CV2Player([CLIP_A]) # TODO (NEW) Initialize the cv2 player
 
         #TODO: add a text file as database to store the opinions
         
@@ -134,6 +137,17 @@ class VideoController:
             self.current_state = "A"
         else:
             self.current_state = "C"
+
+    def play_clip_cv2(self, filename, play_immediately=False, show_message=False):
+        """
+        TODO: (NEW) Play a video clip using OpenCV
+        
+        Args:
+            filename (str): Name of the video file to play
+            play_immediately (bool): Whether to play the clip immediately
+        """
+        thread = threading.Thread(target=self.cv2_player.add_video, args=(os.path.join(self.folder_path, filename), play_immediately))
+        thread.start()
 
     def play_clip(self, filename, loop=False, duration=None):
         """

@@ -2,7 +2,7 @@ import sys
 import cv2
 import os
 import time
-
+import threading
 class CV2Player:
     """
     A video player class that uses OpenCV to play videos seamlessly
@@ -30,16 +30,20 @@ class CV2Player:
         """Start playing videos from the playlist
         Videos added with play_immediately=True will interrupt current playback
         """
-        if not self.playlist:
-            print("Playlist is empty")
-            return
+        # if not self.playlist:
+        #     print("Playlist is empty")
+        #     return
 
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
         self.is_playing = True
 
+        count = 0
         while self.is_playing:
+            count += 1
+            print(f"running - {count}")
             if not self.playlist:
-                break
+                # break
+                continue
                 
             video_path, play_immediately = self.playlist[0]
             cap = cv2.VideoCapture(video_path)
@@ -49,7 +53,9 @@ class CV2Player:
                 self.playlist.pop(0)
                 continue
 
+            
             while cap.isOpened() and self.is_playing:
+                print(f"playing video")
                 s = time.time()
                 ret, frame = cap.read()
                 
@@ -73,10 +79,10 @@ class CV2Player:
                     break
                 elif key == ord('f'):
                     self.toggle_fullscreen()
-                elif key == ord('q'):
+                elif key == ord('i'):
                     self.add_video('./footages/D_8.mp4', play_immediately=True)
                     self.show_message("Added video (play immediately)") #for dev
-                elif key == ord('w'):
+                elif key == ord('o'):
                     self.add_video('./footages/D_8.mp4', play_immediately=False)
                     self.show_message("Added video (play after current)") #for dev
                 
@@ -87,7 +93,7 @@ class CV2Player:
                 diff = time.time() - s
                 print(f"VIDEO PLAYER | sleep: {max(0, self.frame_delay/1000 - diff):.2f}s (target: {self.frame_delay/1000:.2f}s) | fps: {1/diff:.2f}")
                 time.sleep(max(0, self.frame_delay/1000 - diff))
-            
+
             cap.release()
             
             # Handle playlist management
@@ -96,6 +102,7 @@ class CV2Player:
             else:
                 self.playlist[0] = (video_path, False)
                 continue
+            
 
         cv2.destroyAllWindows()
 
@@ -127,14 +134,24 @@ class CV2Player:
         self.message = text
         self.message_timestamp = time.time()
 
+    def test_play_playlist(self):
+        time.sleep(5) # optional, just for testing
+        print("Adding video")
+        self.add_video('./footages/D_8.mp4', play_immediately=True)
 
 if __name__ == '__main__':
+    
     video_paths = [
-        # "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A.mp4",
-        # "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B.mp4",
-        "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4"
+        "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4" # put CLIP A here
     ]
 
-    player = CV2Player(video_paths) 
+    player = CV2Player(video_paths) # this has to run in main thread and will be blocking
+
+    # this thread will add a video to the playlist in 5 seconds
+    thread = threading.Thread(target=player.test_play_playlist)
+    thread.start()
+
+    # this thread will play the playlist(which could be empty) immediately
     player.play_playlist()
 
+    
