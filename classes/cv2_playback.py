@@ -10,7 +10,7 @@ class CV2Player:
     """
     A video player class that uses OpenCV to play videos seamlessly
     """
-    def __init__(self, video_paths=[], votes_file="", fps=15, verbose=False):
+    def __init__(self, video_paths=[], votes_file="", fps=25, verbose=False):
         """
         Initialize the video player
         
@@ -23,7 +23,7 @@ class CV2Player:
         self.is_playing = False
         self.fps = fps
         self.frame_delay = int(1000/fps)
-        self.screen_scale = 0.5
+        self.screen_scale = 1
         self.is_fullscreen = False
         self.window_name = 'Video Player'
         self.res_width = 1920
