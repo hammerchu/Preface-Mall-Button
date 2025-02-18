@@ -197,7 +197,7 @@ class VideoController:
                     Transitions from State A to State B immediately when camera becomes active.
                     '''
                     print("CAMERA ACTIVE - Transitioning from State A to State B")
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=True)
+                    self.cv2_player.add_video(self.B_video_path, play_immediately=True)
                     self.current_state = 'B'
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
@@ -356,99 +356,6 @@ class VideoController:
             
             time.sleep(0.1)
 
-
-
-    def handle_state_a(self):
-        """ 
-        (obsolete)
-        State A handler: Plays clip A in a loop until camera detects activity.
-        Transitions to State B when camera becomes active.
-        """
-        print("Playing clip A")
-        # self.play_clip("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", loop=True)
-        self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=True)
-
-        if self.cam_active:
-            print("CAMERA ACTIVE - Transitioning from State A to State B")
-            self.current_state = "B"
-
-    def handle_state_b(self):
-        """
-        (obsolete)
-        State B handler: Plays clip B for 5-10 seconds.
-        Transitions:
-        - To State A if camera inactive
-        - To Statistics if vote detected
-        - To State C if camera remains active for 15 seconds
-        """
-        # self.play_clip("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", duration=(5, 10))
-        self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=False)
-
-        if not self.cam_active:
-            self.current_state = "A"
-            return
-
-        if self.vote_active:
-            self.current_state = "STATISTICS"
-        else:
-            if self.check_condition_duration(15):
-                self.current_state = "C"
-
-    def handle_state_c(self):
-        """
-        (obsolete)
-        State C handler: Plays clip C.
-        Transitions:
-        - To State A if camera inactive
-        - To Statistics if vote detected
-        - To State B otherwise
-        """
-        # self.play_clip("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4")
-        self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4", play_immediately=False)
-
-        if not self.cam_active:
-            self.current_state = "A"
-            return
-
-        if self.vote_active:
-            self.current_state = "STATISTICS"
-        else:
-            self.current_state = "B"
-
-    def handle_state_statistics(self):
-        """
-        (obsolete)
-        Statistics state handler: Displays voting results as pie chart.
-        Transitions:
-        - To State A if camera inactive
-        - To State C if camera remains active
-        """
-        self.show_statistics()
-
-        if not self.cam_active:
-            self.current_state = "A"
-        else:
-            self.current_state = "C"
-
-    def play_clip(self, filename, loop=False, duration=None):
-        """
-        (obsolete)
-        Play a video clip with specified parameters
-
-        Args:
-            filename (str): Name of the video file to play
-            loop (bool): Whether to loop the video
-            duration (tuple or int): Duration to play the clip, can be (min, max) or fixed duration
-        """
-        clip = VideoFileClip(os.path.join(self.folder_path, filename))
-
-        if loop:
-            clip = clip.loop()
-        if duration:
-            clip = clip.subclip(0, duration[1] if isinstance(duration, tuple) else duration)
-
-        clip.preview(fps=24)
-        clip.close()
 
     def update_sensors(self):
         print("Updating sensors")
