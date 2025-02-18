@@ -165,6 +165,7 @@ class VideoController:
         """
         Run a loop, and jump to a specific state when the condition is met
         """
+        time.sleep(3)
         count = 0
         while self.running:
             try:
