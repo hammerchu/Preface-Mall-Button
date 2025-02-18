@@ -66,15 +66,7 @@ class VideoController:
 
         self.pie_chart = PieChart()
         self.pie_ready = False
-        self.statistic_video_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/tmp_pie_chart.mp4"
-
-        # State transition map - maps states to their handler functions
-        self.transitions = {
-            "A": self.handle_state_a,
-            "B": self.handle_state_b,
-            "C": self.handle_state_c,
-            "STATISTICS": self.handle_state_statistics
-        }
+        self.statistic_video_path = os.path.join(self.working_folder, "tmp_pie_chart.mp4")
         
 
     def start(self):
@@ -418,8 +410,8 @@ class VideoController:
         """Clean up resources and temporary files before program exit"""
         # self.eyes.done = True
         # self.keyboard_listener.stop()
-        if os.path.exists("temp_piechart.mp4"):
-            os.remove("temp_piechart.mp4")
+        if os.path.exists(self.statistic_video_path):
+            os.remove(self.statistic_video_path)
 
 
 if __name__ == "__main__":
