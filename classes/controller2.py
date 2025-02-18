@@ -28,23 +28,30 @@ class VideoController:
 
     """
 
-    def __init__(self, folder_path, votes_file):
+    def __init__(self, working_folder, votes_file):
         """
         Initialize the video controller with required components and state variables
 
         Args:
             folder_path (str): Path to the folder containing video clips
         """
-        self.folder_path = folder_path
+        self.working_folder = working_folder
+        # self.folder_path = folder_path
         # self.eyes = Eyes()  # Initialize camera detection
         self.current_state = "A"  # Starting state
+
+        self.A_video_path = os.path.join(self.working_folder, "footages/A_8.mp4")
+        self.B_video_path = os.path.join(self.working_folder, "footages/B_8.mp4")
+        self.C_video_path = os.path.join(self.working_folder, "footages/C_8.mp4")
+        self.D_video_path = os.path.join(self.working_folder, "footages/D_8.mp4")
+
         self.cam_active = False  # Camera detection status
         self.vote_active = False  # Voting system status
         self.running = True  # Main loop control flag
         self.timers = {}  # Store timing information
         self.keyboard_listener = None  # Keyboard input handler
         self.statistics_duration = 10  # Duration to show statistics in seconds
-        self.votes_file = votes_file
+        self.votes_file = os.path.join(self.working_folder, "data/votes.txt")
         self.last_vote_time = 0
         self.vote_cooldown = 1  # 1 second cooldown between votes
         open(self.votes_file, 'a').close()  # Create file if not exists
@@ -79,12 +86,12 @@ class VideoController:
 
         # Initialize the cv2 player
         self.cv2_player = CV2Player([
-        "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4" # put CLIP A here
+            self.A_video_path,
         ], votes_file=self.votes_file) 
         self.cv2_player.screen_scale = 0.5 # scale down the video to 50% of the original size
         self.cv2_player.play_playlist() #  BLOCKING! - play the playlist(which could be empty) immediately 
 
-        self.cleanup()
+        self.cleanup()  
 
 
     def start_keyboard_listener(self):
@@ -126,18 +133,18 @@ class VideoController:
                 if key.char == 'a':
                     print("pynput:a key pressed")
                     self.current_state = 'A'
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=True)
+                    self.cv2_player.add_video(self.A_video_path, play_immediately=True)
                 if key.char == 'b':
                     print("pynput:b key pressed")
                     self.current_state = 'B'
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=True)
+                    self.cv2_player.add_video(self.B_video_path, play_immediately=True)
                 if key.char == 'c':
                     print("pynput:c key pressed")
                     self.current_state = 'C'
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4", play_immediately=True)
+                    self.cv2_player.add_video(self.C_video_path, play_immediately=True)
                 if key.char == 'd':
                     print("pynput:d key pressed")
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/D_8.mp4", play_immediately=True)
+                    self.cv2_player.add_video(self.D_video_path, play_immediately=True)
                 
                 '''Simulate eyes detection'''
                 if key.char == 'p':
@@ -234,7 +241,7 @@ class VideoController:
                     '''
                     print("CAMERA ACTIVE - Transitioning from State B to State C")
                     
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4", play_immediately=False)
+                    self.cv2_player.add_video(self.C_video_path, play_immediately=False)
                     self.current_state = 'C'
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
@@ -245,7 +252,7 @@ class VideoController:
                     Transitions from State B to State A when the video is near end.
                     '''
                     print("CAMERA INACTIVE - Transitioning from State B to State A")
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=False)
+                    self.cv2_player.add_video(self.A_video_path, play_immediately=False)
                     self.current_state = 'A'
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
@@ -280,7 +287,7 @@ class VideoController:
                     Transitions from State B to State A when the video is near end.
                     '''
                     print("CAMERA INACTIVE - Transitioning from State C to State A")
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=False)
+                    self.cv2_player.add_video(self.A_video_path, play_immediately=False)
                     self.current_state = 'A'
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
@@ -290,7 +297,7 @@ class VideoController:
                     Transitions from State C to State B when the video is near end.
                     '''
                     print("CAMERA ACTIVE - Transitioning from State C to State B")
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=False)
+                    self.cv2_player.add_video(self.B_video_path, play_immediately=False)
                     self.current_state = 'B'
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
@@ -325,7 +332,7 @@ class VideoController:
                     Transitions from State S to State A when the video is near end.
                     '''
                     print("CAMERA INACTIVE - Transitioning from State S to State A")
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=False)
+                    self.cv2_player.add_video(self.A_video_path, play_immediately=False)
                     self.current_state = 'A'
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
@@ -336,7 +343,7 @@ class VideoController:
                     Transitions from State S to State B when the video is near end.
                     '''
                     print("CAMERA ACTIVE - Transitioning from State S to State B")
-                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=False)
+                    self.cv2_player.add_video(self.B_video_path, play_immediately=False)
                     self.current_state = 'B'
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
@@ -504,5 +511,10 @@ class VideoController:
 
 
 if __name__ == "__main__":
-    controller = VideoController("/Users/hammerchu/Desktop/DEV/Preface/Mall/play_this_folder", votes_file="/Users/hammerchu/Desktop/DEV/Preface/Mall/data/votes.txt")
+    # Get the current directory path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level to get the Mall directory
+    mall_dir = os.path.dirname(current_dir)
+    print('WORKING DIRECTORY:', mall_dir)
+    controller = VideoController(working_folder=mall_dir, votes_file="data/votes.txt")
     controller.start()
