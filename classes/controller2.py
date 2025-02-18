@@ -1,0 +1,508 @@
+from moviepy.editor import VideoFileClip
+import time
+import threading
+from pynput import keyboard
+import os
+# from yolo import Eyes
+from pie_chart import PieChart
+from cv2_playback import CV2Player
+
+class VideoController:
+    """
+    Main controller class that manages video playback, state transitions, and user interactions.
+    Handles camera detection and voting system integration.
+
+    workflow that we are trying to achieve:
+    - State A: Plays clip A in a loop until camera detects activity.
+        if camera detects activity, transition to State B.
+    - State B: Plays clip B for 5-10 seconds.
+        if vote is detected(T), transition to State Statistics.
+        if vote is(F), camera is inactive(F), transition to State A.
+        if vote is(F), camera remains active until the end of the clip(T), transition to State C.
+    - State C: Plays clip C for 10s.
+        if camera is inactive(F), transition to State A.(TODO: NEW)
+        if camera remains active until the end of the clip(T), transition to State B(so people can press).
+    - Statistics: Displays voting results as pie chart.
+        if camera is inactive(F), transition to State A.
+        if camera remains active until the end of the clip(T), transition to State A. (TODO: NEW)
+
+    """
+
+    def __init__(self, folder_path, votes_file):
+        """
+        Initialize the video controller with required components and state variables
+
+        Args:
+            folder_path (str): Path to the folder containing video clips
+        """
+        self.folder_path = folder_path
+        # self.eyes = Eyes()  # Initialize camera detection
+        self.current_state = "A"  # Starting state
+        self.cam_active = False  # Camera detection status
+        self.vote_active = False  # Voting system status
+        self.running = True  # Main loop control flag
+        self.timers = {}  # Store timing information
+        self.keyboard_listener = None  # Keyboard input handler
+        self.statistics_duration = 10  # Duration to show statistics in seconds
+        self.votes_file = votes_file
+        self.last_vote_time = 0
+        self.vote_cooldown = 1  # 1 second cooldown between votes
+        open(self.votes_file, 'a').close()  # Create file if not exists
+        self.cam_detection_buffer = []
+        self.cam_threshold = 3 # NEW
+        self.is_changed_state = False
+        self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+
+        self.pie_chart = PieChart()
+        self.pie_ready = False
+        self.statistic_video_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/tmp_pie_chart.mp4"
+
+        # State transition map - maps states to their handler functions
+        self.transitions = {
+            "A": self.handle_state_a,
+            "B": self.handle_state_b,
+            "C": self.handle_state_c,
+            "STATISTICS": self.handle_state_statistics
+        }
+        
+
+    def start(self):
+        """
+        Start the main control loop that manages state transitions and video playback.
+        Initializes camera and keyboard listeners before entering the main loop.
+        """
+        # self.start_camera() # camera listener non-blocking
+        self.start_keyboard_listener() # keyboard listener non-blocking
+
+        action_thread = threading.Thread(target=self.jump_to_state_action)
+        action_thread.start()
+
+        # Initialize the cv2 player
+        self.cv2_player = CV2Player([
+        "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4" # put CLIP A here
+        ], votes_file=self.votes_file) 
+        self.cv2_player.screen_scale = 0.5 # scale down the video to 50% of the original size
+        self.cv2_player.play_playlist() #  BLOCKING! - play the playlist(which could be empty) immediately 
+
+        self.cleanup()
+
+
+    def start_keyboard_listener(self):
+        """
+        Initialize and start keyboard input listener.
+        Handles:
+        - ESC key to stop program
+        - 'v' key to toggle voting status
+        """
+
+        # TODO: add keyboard Q, W, E input to toggle each opinion, we can store the opinions in a text file for now
+        # TODO: add sleep time between each opinion to avoid double voting
+        def on_press(key):
+            # Existing ESC handler
+            if key == keyboard.Key.esc:
+                self.running = False
+                print("pynput:ESC key pressed")
+
+            # Added vote handling (TODO)
+            try:
+                # Check if pressed key is one of the voting keys (Q, W, E)
+                if key.char.upper() in ['Q', 'W', 'E']:
+                    current_time = time.time()
+                    # Check if enough time has passed since last vote (prevents double voting)
+                    if current_time - self.last_vote_time >= self.vote_cooldown:
+                        print("--------------------------------")
+                        print("--------------------------------")
+                        print(f"Valid new vote of {key.char.upper()}")
+                        print("--------------------------------")
+                        print("--------------------------------")
+                        # Append the vote to the votes file
+                        with open(self.votes_file, 'a') as f:
+                            f.write(f"{key.char.upper()}\n")
+                        # Set voting as active and update last vote timestamp
+                        self.vote_active = True # set the vote_active flag to True, it will be reset in the jump_to_state_action()
+                        self.last_vote_time = current_time # update the last vote timestamp
+
+                '''DEV: Force transition to a state'''
+                if key.char == 'a':
+                    print("pynput:a key pressed")
+                    self.current_state = 'A'
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=True)
+                if key.char == 'b':
+                    print("pynput:b key pressed")
+                    self.current_state = 'B'
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=True)
+                if key.char == 'c':
+                    print("pynput:c key pressed")
+                    self.current_state = 'C'
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4", play_immediately=True)
+                if key.char == 'd':
+                    print("pynput:d key pressed")
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/D_8.mp4", play_immediately=True)
+                
+                '''Simulate eyes detection'''
+                if key.char == 'p':
+                    if not self.cam_active:
+                        print("pynput:p key pressed - simulate eyes detection ON")
+                        self.cam_active = True  
+                    else:
+                        print("pynput:p key pressed - simulate eyes detection OFF")
+                        self.cam_active = False
+            except AttributeError:
+                pass
+
+        self.keyboard_listener = keyboard.Listener(on_press=on_press)
+        self.keyboard_listener.start()
+
+
+    def jump_to_state_action(self):
+        """
+        Run a loop, and jump to a specific state when the condition is met
+        """
+        count = 0
+        while self.running:
+            try:
+                print(f"STATE: {self.current_state} | CAM ACTIVE: {self.cam_active} | {self.cv2_player.current_clip_frame_count:.0f}/{self.cv2_player.total_clip_frame_count:.0f} REACH END: {self.cv2_player.is_video_reach_end} | LEN OF PLAYLIST: {len(self.cv2_player.playlist)} | IS CHANGED STATE: {self.is_changed_state}")
+            except:
+                print("Error: cv2_player is not initialized")
+
+            if self.current_state == 'A':
+                '''
+                Transitions to State B when camera becomes active.
+                '''
+                if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
+                    if self.cam_active:
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                else:
+                    if self.cam_active:
+                        self.cv2_player.message = f"CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"CAMERA INACTIVE"
+
+                if self.cam_active:
+                    '''
+                    Transitions from State A to State B immediately when camera becomes active.
+                    '''
+                    print("CAMERA ACTIVE - Transitioning from State A to State B")
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=True)
+                    self.current_state = 'B'
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+                
+                    
+            elif self.current_state == 'B':
+                '''
+                Transitions:
+                - To Statistics if vote detected
+                - To State C if camera remains active
+                - To State A if camera inactive
+                '''  
+                self.state_counter += 1
+                if self.state_counter == 10:
+                    self.is_changed_state = False # this allow the transition to happen only once
+
+                if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
+                    if self.cam_active:
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                else:
+                    if self.cam_active:
+                        self.cv2_player.message = f"CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"CAMERA INACTIVE"
+
+                if self.vote_active and self.cam_active:
+                    '''
+                    If vote is detected,
+                    Transitions from State B to State Statistics immediately.
+                    '''
+                    print("VOTE DETECTED - Transitioning from State B to State Statistics")
+                   
+
+                    self.cv2_player.add_video('pie_chart_render', play_immediately=True) # jump to statistics state, note that this is a special case, the video is not a file, but a label to trigger the pie chart render
+                    self.current_state = 'STATISTICS'
+                    self.vote_active = False # reset the vote_active flag to False
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+
+                elif self.cam_active and not self.vote_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
+                    '''
+                    If NO vote and camera is ACTIVE,
+                    Transitions from State B to State C when the video is near end.
+                    '''
+                    print("CAMERA ACTIVE - Transitioning from State B to State C")
+                    
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4", play_immediately=False)
+                    self.current_state = 'C'
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+
+                elif not self.cam_active and not self.vote_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
+                    '''
+                    If NO vote and camera is INACTIVE,
+                    Transitions from State B to State A when the video is near end.
+                    '''
+                    print("CAMERA INACTIVE - Transitioning from State B to State A")
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=False)
+                    self.current_state = 'A'
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+
+
+            elif self.current_state == 'C':
+                """
+                State C handler: Plays clip C.
+                Transitions:
+                - To State A if camera inactive
+                - To Statistics if vote detected (TODO: no vote for this state )
+                - To State B otherwise
+                """
+                self.state_counter += 1
+                if self.state_counter == 10:
+                    self.is_changed_state = False # this allow the transition to happen only once
+
+                if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
+                    if self.cam_active:
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                else:
+                    if self.cam_active:
+                        self.cv2_player.message = f"CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"CAMERA INACTIVE"
+
+                if not self.cam_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
+                    '''
+                    If camera is INACTIVE,
+                    Transitions from State B to State A when the video is near end.
+                    '''
+                    print("CAMERA INACTIVE - Transitioning from State C to State A")
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=False)
+                    self.current_state = 'A'
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+                elif self.cam_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
+                    '''
+                    If camera is ACTIVE,
+                    Transitions from State C to State B when the video is near end.
+                    '''
+                    print("CAMERA ACTIVE - Transitioning from State C to State B")
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=False)
+                    self.current_state = 'B'
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+
+
+            elif self.current_state == 'STATISTICS':
+                """
+                State Statistics handler: Plays custom clip Statistics.
+                Transitions:
+                - To State A if camera inactive
+                - To State C if vote detected (TODO: no vote for this state )
+                - To State B otherwise
+                """
+                self.state_counter += 1
+                if self.state_counter == 5:
+                    self.is_changed_state = False # this allow the transition to happen only once
+
+                if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
+                    if self.cam_active:
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                else:
+                    if self.cam_active:
+                        self.cv2_player.message = f"CAMERA ACTIVE"
+                    else:
+                        self.cv2_player.message = f"CAMERA INACTIVE"
+
+                if not self.cam_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
+                    '''
+                    If camera is INACTIVE,
+                    Transitions from State S to State A when the video is near end.
+                    '''
+                    print("CAMERA INACTIVE - Transitioning from State S to State A")
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=False)
+                    self.current_state = 'A'
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+
+                elif self.cam_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
+                    '''
+                    If camera is ACTIVE,
+                    Transitions from State S to State B when the video is near end.
+                    '''
+                    print("CAMERA ACTIVE - Transitioning from State S to State B")
+                    self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=False)
+                    self.current_state = 'B'
+                    self.is_changed_state = True
+                    self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
+
+            
+            time.sleep(0.1)
+
+
+
+    def handle_state_a(self):
+        """ 
+        (obsolete)
+        State A handler: Plays clip A in a loop until camera detects activity.
+        Transitions to State B when camera becomes active.
+        """
+        print("Playing clip A")
+        # self.play_clip("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", loop=True)
+        self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4", play_immediately=True)
+
+        if self.cam_active:
+            print("CAMERA ACTIVE - Transitioning from State A to State B")
+            self.current_state = "B"
+
+    def handle_state_b(self):
+        """
+        (obsolete)
+        State B handler: Plays clip B for 5-10 seconds.
+        Transitions:
+        - To State A if camera inactive
+        - To Statistics if vote detected
+        - To State C if camera remains active for 15 seconds
+        """
+        # self.play_clip("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", duration=(5, 10))
+        self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/B_8.mp4", play_immediately=False)
+
+        if not self.cam_active:
+            self.current_state = "A"
+            return
+
+        if self.vote_active:
+            self.current_state = "STATISTICS"
+        else:
+            if self.check_condition_duration(15):
+                self.current_state = "C"
+
+    def handle_state_c(self):
+        """
+        (obsolete)
+        State C handler: Plays clip C.
+        Transitions:
+        - To State A if camera inactive
+        - To Statistics if vote detected
+        - To State B otherwise
+        """
+        # self.play_clip("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4")
+        self.cv2_player.add_video("/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/C_8.mp4", play_immediately=False)
+
+        if not self.cam_active:
+            self.current_state = "A"
+            return
+
+        if self.vote_active:
+            self.current_state = "STATISTICS"
+        else:
+            self.current_state = "B"
+
+    def handle_state_statistics(self):
+        """
+        (obsolete)
+        Statistics state handler: Displays voting results as pie chart.
+        Transitions:
+        - To State A if camera inactive
+        - To State C if camera remains active
+        """
+        self.show_statistics()
+
+        if not self.cam_active:
+            self.current_state = "A"
+        else:
+            self.current_state = "C"
+
+    def play_clip(self, filename, loop=False, duration=None):
+        """
+        (obsolete)
+        Play a video clip with specified parameters
+
+        Args:
+            filename (str): Name of the video file to play
+            loop (bool): Whether to loop the video
+            duration (tuple or int): Duration to play the clip, can be (min, max) or fixed duration
+        """
+        clip = VideoFileClip(os.path.join(self.folder_path, filename))
+
+        if loop:
+            clip = clip.loop()
+        if duration:
+            clip = clip.subclip(0, duration[1] if isinstance(duration, tuple) else duration)
+
+        clip.preview(fps=24)
+        clip.close()
+
+    def update_sensors(self):
+        print("Updating sensors")
+        """Update the status of camera detection and voting system"""
+        # self.cam_active = self.check_camera_condition()
+        self.vote_active = self.check_vote_condition()
+
+    def check_camera_condition(self):
+
+        current_detection = bool(len(self.eyes.result_list)) if self.eyes.yolo_result else False
+        self.cam_detection_buffer.append(current_detection)
+
+        # Maintain buffer of last 5 checks
+        if len(self.cam_detection_buffer) > 5:
+            self.cam_detection_buffer.pop(0)
+        return len(self.eyes.result_list) > 0 if self.eyes.yolo_result else False
+
+    def check_vote_condition(self):
+        """
+        Check if voting is active
+
+        Returns:
+            bool: Current voting status
+        """
+
+        return self.vote_active  # Replace with actual vote detection logic
+
+    def check_condition_duration(self, required_duration):
+        """
+        Check if a condition persists for specified duration
+
+        Args:
+            required_duration (int): Duration in seconds to check for
+
+        Returns:
+            bool: True if condition persists for entire duration
+        """
+        start_time = time.time()
+        while time.time() - start_time < required_duration:
+            if not self.cam_active or self.vote_active:
+                return False
+            time.sleep(0.1)
+        return True
+
+    
+
+    def start_camera(self):
+        """Start camera detection threads if not already running"""
+        if not self.eyes.read_thread.is_alive():
+            self.eyes.read_thread.start()
+        if not self.eyes.yolo_thread.is_alive():
+            self.eyes.yolo_thread.start()
+
+    def stop_current_clip(self):
+        """Stop the currently playing video clip"""
+        # MoviePy doesn't support interrupting previews, need to manage timing
+        pass  # Implement proper clip termination if needed
+
+    def cleanup(self):
+        """Clean up resources and temporary files before program exit"""
+        # self.eyes.done = True
+        # self.keyboard_listener.stop()
+        if os.path.exists("temp_piechart.mp4"):
+            os.remove("temp_piechart.mp4")
+
+
+if __name__ == "__main__":
+    controller = VideoController("/Users/hammerchu/Desktop/DEV/Preface/Mall/play_this_folder", votes_file="/Users/hammerchu/Desktop/DEV/Preface/Mall/data/votes.txt")
+    controller.start()
