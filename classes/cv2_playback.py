@@ -64,7 +64,7 @@ class CV2Player:
             count += 1
             print(f"running - {count}")
             if self.playlist:
-                video_path, _ = self.playlist[0]
+                video_path, _ = self.playlist[-1] # play the last video in the playlist
 
                 if video_path == "pie_chart_render":
                     '''Special case for pie chart render'''
