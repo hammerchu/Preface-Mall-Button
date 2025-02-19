@@ -149,6 +149,7 @@ class CV2Player:
                         frame = cv2.resize(frame, None, fx=self.screen_scale, fy=self.screen_scale)
                         
                         cv2.imshow(self.window_name, frame)
+                        cv2.waitKey()
                         
                         key = cv2.waitKey(self.frame_delay) & 0xFF
                         if key == 27:
