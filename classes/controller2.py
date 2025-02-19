@@ -431,10 +431,10 @@ if __name__ == "__main__":
     mall_dir = os.path.dirname(current_dir)
     
     #Eyes
-    eyes_fps = 1
+    eyes_fps = 0.5
     eyes_scale = 1
-    eyes_buffer_size = 5
-    eyes_result_threshold = 3
+    eyes_buffer_size = 3
+    eyes_result_threshold = 2
     eye_parms = (eyes_fps, eyes_scale, eyes_buffer_size, eyes_result_threshold)
 
     print('WORKING DIRECTORY:', mall_dir)
