@@ -55,7 +55,7 @@ class CV2Player:
         #     return
 
         # cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
-        cv2.namedWindow(self.window_name, cv2.WINDOW_FULLSCREEN)
+        cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
         cv2.setWindowProperty(self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
         # self.toggle_fullscreen()
         self.is_playing = True
@@ -87,9 +87,14 @@ class CV2Player:
                             print(f"holding the pie chart for {self.current_clip_frame_count - pie_chart_duration}/{pie_chart_hold_time*self.fps} seconds")
                             frame = self.pie_chart.render_single_frame(data, colors, duration=pie_chart_duration, title="polling result", frame_index=pie_chart_duration, player=False)
                         # Scale the frame
-                        frame = cv2.resize(frame, None, fx=self.screen_scale, fy=self.screen_scale)
+                        # frame = cv2.resize(frame, None, fx=self.screen_scale, fy=self.screen_scale)
                         cv2.imshow(self.window_name, frame)
-                        cv2.waitKey(1)
+                        key = cv2.waitKey(self.frame_delay) & 0xFF
+                        if key == 27:
+                            self.is_playing = False
+                            break
+                        elif key == ord('f'):
+                            self.toggle_fullscreen()
                         # frame_count += 1
 
                         # Unified end detection using total duration
@@ -146,10 +151,9 @@ class CV2Player:
                             frame = cv2.addWeighted(overlay, 0.7, frame, 0.3, 0)
                             
                         # Scale the frame
-                        frame = cv2.resize(frame, None, fx=self.screen_scale, fy=self.screen_scale)
+                        # frame = cv2.resize(frame, None, fx=self.screen_scale, fy=self.screen_scale)
                         cv2.setWindowProperty(self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
                         cv2.imshow(self.window_name, frame)
-                        cv2.waitKey()
                         
                         key = cv2.waitKey(self.frame_delay) & 0xFF
                         if key == 27:
@@ -166,7 +170,7 @@ class CV2Player:
                         diff = time.time() - s
                         if self.verbose:
                             print(f"VIDEO PLAYER | sleep: {max(0, self.frame_delay/1000 - diff):.2f}s (target: {self.frame_delay/1000:.2f}s) | fps: {1/diff:.2f}")
-                        time.sleep(max(0, self.frame_delay/1000 - diff))
+                        # time.sleep(max(0, self.frame_delay/1000 - diff))
 
                 cap.release()
                 
