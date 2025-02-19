@@ -438,5 +438,5 @@ if __name__ == "__main__":
     eye_parms = (eyes_fps, eyes_scale, eyes_buffer_size, eyes_result_threshold)
 
     print('WORKING DIRECTORY:', mall_dir)
-    controller = VideoController(use_eyes=True, working_folder=mall_dir, votes_file="data/votes.txt", eye_parms=eye_parms)
+    controller = VideoController(use_eyes=False, working_folder=mall_dir, votes_file="data/votes.txt", eye_parms=eye_parms)
     controller.start()
