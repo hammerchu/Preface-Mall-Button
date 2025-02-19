@@ -169,8 +169,8 @@ class CV2Player:
 
                         # sleep to match the frame rate
                         diff = time.time() - s
+                        self.performance_fps = 1/diff
                         if self.verbose:
-                            self.performance_fps = 1/diff
                             print(f"VIDEO PLAYER | sleep: {max(0, self.frame_delay/1000 - diff):.2f}s (target: {self.frame_delay/1000:.2f}s) | fps: {1/diff:.2f}")
                         # time.sleep(max(0, self.frame_delay/1000 - diff))
 
