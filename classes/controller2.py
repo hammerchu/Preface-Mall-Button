@@ -3,7 +3,7 @@ import time
 import threading
 from pynput import keyboard
 import os
-# from yolo import Eyes
+from yolo import Eyes
 from pie_chart import PieChart
 from cv2_playback import CV2Player
 
@@ -28,7 +28,7 @@ class VideoController:
 
     """
 
-    def __init__(self, working_folder, votes_file):
+    def __init__(self, use_eyes=True, working_folder="./", votes_file="data/votes.txt", eye_parms=None):
         """
         Initialize the video controller with required components and state variables
 
@@ -38,6 +38,10 @@ class VideoController:
         self.working_folder = working_folder
         # self.folder_path = folder_path
         # self.eyes = Eyes()  # Initialize camera detection
+        if use_eyes:
+            self.eyes = Eyes(*eye_parms)
+        else:
+            self.eyes = None
         self.current_state = "A"  # Starting state
 
         self.A_video_path = os.path.join(self.working_folder, "footages/A_8.mp4")
@@ -358,13 +362,18 @@ class VideoController:
 
     def check_camera_condition(self):
 
+        # Get current detection status - True if objects detected in current frame, False if no detection or no result
         current_detection = bool(len(self.eyes.result_list)) if self.eyes.yolo_result else False
+        # Add current detection status to buffer for tracking detection history
         self.cam_detection_buffer.append(current_detection)
 
         # Maintain buffer of last 5 checks
+        # Keep buffer size at 5 by removing oldest detection
         if len(self.cam_detection_buffer) > 5:
             self.cam_detection_buffer.pop(0)
+        # Return True if objects detected in current frame, False otherwise
         return len(self.eyes.result_list) > 0 if self.eyes.yolo_result else False
+    
 
     def check_vote_condition(self):
         """
@@ -409,8 +418,8 @@ class VideoController:
 
     def cleanup(self):
         """Clean up resources and temporary files before program exit"""
-        # self.eyes.done = True
-        # self.keyboard_listener.stop()
+        self.eyes.running = False
+        self.keyboard_listener.stop()
         if os.path.exists(self.statistic_video_path):
             os.remove(self.statistic_video_path)
 
@@ -420,6 +429,14 @@ if __name__ == "__main__":
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # Go up one level to get the Mall directory
     mall_dir = os.path.dirname(current_dir)
+    
+    #Eyes
+    eyes_fps = 3
+    eyes_scale = 1
+    eyes_buffer_size = 15
+    eyes_result_threshold = 13
+    eye_parms = (eyes_fps, eyes_scale, eyes_buffer_size, eyes_result_threshold)
+
     print('WORKING DIRECTORY:', mall_dir)
-    controller = VideoController(working_folder=mall_dir, votes_file="data/votes.txt")
+    controller = VideoController(use_eyes=True, working_folder=mall_dir, votes_file="data/votes.txt", eye_parms=eye_parms)
     controller.start()

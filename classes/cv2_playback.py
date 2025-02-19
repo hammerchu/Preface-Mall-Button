@@ -55,6 +55,7 @@ class CV2Player:
         #     return
 
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        self.toggle_fullscreen()
         self.is_playing = True
 
         count = 0
