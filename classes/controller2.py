@@ -431,12 +431,12 @@ if __name__ == "__main__":
     mall_dir = os.path.dirname(current_dir)
     
     #Eyes
-    eyes_fps = 3
+    eyes_fps = 1
     eyes_scale = 1
-    eyes_buffer_size = 15
-    eyes_result_threshold = 13
+    eyes_buffer_size = 5
+    eyes_result_threshold = 3
     eye_parms = (eyes_fps, eyes_scale, eyes_buffer_size, eyes_result_threshold)
 
     print('WORKING DIRECTORY:', mall_dir)
-    controller = VideoController(use_eyes=False, working_folder=mall_dir, votes_file="data/votes.txt", eye_parms=eye_parms)
+    controller = VideoController(use_eyes=True, working_folder=mall_dir, votes_file="data/votes.txt", eye_parms=eye_parms)
     controller.start()
