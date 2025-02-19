@@ -3,7 +3,24 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import pygame
 import numpy
+import mpv
+import vlc
 
+def play_video_fullscreen(path):
+    """
+    Function note: Play video using VLC with hardware decoding
+    Args:
+        path (str): Path to video file
+    """
+    instance = vlc.Instance('--no-xlib --aout=alsa')
+    player = instance.media_player_new()
+    media = instance.media_new(path)
+    player.set_media(media)
+    player.set_fullscreen(True)
+    player.play()
+    
+    while player.is_playing():
+        continue
 
 def play_video(video_path):
     """
@@ -124,9 +141,21 @@ def play_video_pygame(video_path):
     cap.release()
     pygame.quit()
 
+def play_video_fullscreen(path):
+    """
+    Function note: Play video using MPV player with hardware decoding
+    Args:
+        path (str): Path to video file
+    """
+    player = mpv.MPV(vo='rpi', fullscreen=True)
+    player.play(path)
+    player.wait_for_playback()
 
 if __name__ == "__main__":
     # Replace with your video path
     video_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4"
     # play_video(video_path)
-    play_video_pygame(video_path)
+    # play_video_pygame(video_path)
+    play_video_fullscreen(video_path)
+    # play_video_fullscreen_vlc(video_path)
+
