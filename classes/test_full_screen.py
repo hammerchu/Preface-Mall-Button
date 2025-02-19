@@ -22,7 +22,7 @@ def play_video_fullscreen(path):
     while player.is_playing():
         continue
 
-def play_video(video_path):
+def play_video_tk(video_path):
     """
     Play a video in fullscreen loop using OpenCV and Tkinter
     
@@ -154,8 +154,8 @@ def play_video_fullscreen(path):
 if __name__ == "__main__":
     # Replace with your video path
     video_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/footages/A_8.mp4"
-    # play_video(video_path)
+    play_video_tk(video_path)
     # play_video_pygame(video_path)
-    play_video_fullscreen(video_path)
+    # play_video_fullscreen(video_path)
     # play_video_fullscreen_vlc(video_path)
 
