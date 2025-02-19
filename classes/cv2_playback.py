@@ -44,6 +44,7 @@ class CV2Player:
         if not self.votes_file:
             raise ValueError("Error: votes_file is required")
         self.pie_is_baking = False
+        self.performance_fps = 0
 
 
     def play_playlist(self):
@@ -169,6 +170,7 @@ class CV2Player:
                         # sleep to match the frame rate
                         diff = time.time() - s
                         if self.verbose:
+                            self.performance_fps = 1/diff
                             print(f"VIDEO PLAYER | sleep: {max(0, self.frame_delay/1000 - diff):.2f}s (target: {self.frame_delay/1000:.2f}s) | fps: {1/diff:.2f}")
                         # time.sleep(max(0, self.frame_delay/1000 - diff))
 

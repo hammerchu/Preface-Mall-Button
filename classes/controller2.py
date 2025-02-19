@@ -180,14 +180,14 @@ class VideoController:
                 '''
                 if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
                     if self.cam_active:
-                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                 else:
                     if self.cam_active:
-                        self.cv2_player.message = f"CAMERA ACTIVE"
+                        self.cv2_player.message = f"CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"CAMERA INACTIVE"
+                        self.cv2_player.message = f"CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
 
                 if self.cam_active:
                     '''
@@ -213,14 +213,14 @@ class VideoController:
 
                 if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
                     if self.cam_active:
-                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                 else:
                     if self.cam_active:
-                        self.cv2_player.message = f"CAMERA ACTIVE"
+                        self.cv2_player.message = f"CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"CAMERA INACTIVE"
+                        self.cv2_player.message = f"CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
 
                 if self.vote_active and self.cam_active:
                     '''
@@ -274,14 +274,14 @@ class VideoController:
 
                 if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
                     if self.cam_active:
-                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                 else:
                     if self.cam_active:
-                        self.cv2_player.message = f"CAMERA ACTIVE"
+                        self.cv2_player.message = f"CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"CAMERA INACTIVE"
+                        self.cv2_player.message = f"CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
 
                 if not self.cam_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
                     '''
@@ -319,14 +319,14 @@ class VideoController:
 
                 if self.cv2_player.is_video_reach_end: # if the video is near end, show a message
                     if self.cam_active:
-                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE"
+                        self.cv2_player.message = f"Video is near end | CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                 else:
                     if self.cam_active:
-                        self.cv2_player.message = f"CAMERA ACTIVE"
+                        self.cv2_player.message = f"CAMERA ACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
                     else:
-                        self.cv2_player.message = f"CAMERA INACTIVE"
+                        self.cv2_player.message = f"CAMERA INACTIVE | FPS: {self.cv2_player.performance_fps:.1f}"
 
                 if not self.cam_active and self.cv2_player.is_video_reach_end and not self.is_changed_state:
                     '''
@@ -438,5 +438,5 @@ if __name__ == "__main__":
     eye_parms = (eyes_fps, eyes_scale, eyes_buffer_size, eyes_result_threshold)
 
     print('WORKING DIRECTORY:', mall_dir)
-    controller = VideoController(use_eyes=False, working_folder=mall_dir, votes_file="data/votes.txt", eye_parms=eye_parms)
+    controller = VideoController(use_eyes=True, working_folder=mall_dir, votes_file="data/votes.txt", eye_parms=eye_parms)
     controller.start()
