@@ -54,7 +54,8 @@ class CV2Player:
         #     print("Playlist is empty")
         #     return
 
-        cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        # cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        cv2.namedWindow(self.window_name, cv2.WINDOW_FULLSCREEN)
         cv2.setWindowProperty(self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
         # self.toggle_fullscreen()
         self.is_playing = True
