@@ -1,8 +1,17 @@
 import cv2
 
-im = cv2.imread('./data/text_example.png')
-cv2.namedWindow("foo", cv2.WINDOW_NORMAL)
-cv2.setWindowProperty("foo", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-cv2.imshow("foo", im)
-cv2.waitKey()
-cv2.destroyWindow("foo")
+cap = cv2.VideoCapture('./footages/A_8.mp4')
+cv2.namedWindow("video", cv2.WINDOW_NORMAL)
+cv2.setWindowProperty("video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+        
+    cv2.imshow("video", frame)
+    if cv2.waitKey(25) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyWindow("video")
