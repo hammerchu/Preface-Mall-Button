@@ -68,6 +68,10 @@ class VideoController:
         self.pie_ready = False
         self.statistic_video_path = os.path.join(self.working_folder, "tmp_pie_chart.mp4")
         
+        # Initialize the cv2 player
+        self.cv2_player = CV2Player([
+            self.A_video_path,
+        ], votes_file=self.votes_file) 
 
     def start(self):
         """
@@ -80,10 +84,7 @@ class VideoController:
         action_thread = threading.Thread(target=self.jump_to_state_action)
         action_thread.start()
 
-        # Initialize the cv2 player
-        self.cv2_player = CV2Player([
-            self.A_video_path,
-        ], votes_file=self.votes_file) 
+        
         self.cv2_player.screen_scale = 0.5 # scale down the video to 50% of the original size
         self.cv2_player.play_playlist() #  BLOCKING! - play the playlist(which could be empty) immediately 
 
@@ -161,7 +162,7 @@ class VideoController:
         """
         Run a loop, and jump to a specific state when the condition is met
         """
-        time.sleep(3)
+        # time.sleep(3)
         count = 0
         while self.running:
             try:

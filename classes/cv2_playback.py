@@ -33,7 +33,7 @@ class CV2Player:
         self.message_duration = 2  # Duration in seconds to show the message
         
         self.is_video_reach_end = False
-        self.is_video_reach_end_threshold = 0.1 # if the video is near end, set the flag to True
+        self.is_video_reach_end_threshold = 0.3 # if the video is near end, set the flag to True - make sure this is larger than the sleep time of jump_to_state_action() in controller
         self.verbose = verbose
 
         self.current_clip_frame_count = None
@@ -68,32 +68,34 @@ class CV2Player:
 
                 if video_path == "pie_chart_render":
                     '''Special case for pie chart render'''
+                    print(f"***** playing {video_path} *****")
                     # data = [('Apples', 50), ('Bananas', 30), ('Cherries', 20)]
                     # colors = ['darkred', 'yellow', 'pink']
 
                     data, colors = self.generate_statistic_video_params()
                     
-                    frame_count = 0
-                    while frame_count < pie_chart_duration + pie_chart_hold_time*self.fps:
-                        if frame_count < pie_chart_duration:
-                            frame = self.pie_chart.render_single_frame(data, colors, duration=pie_chart_duration, title="polling result", frame_index=frame_count, player=False)
+                    # frame_count = 0
+                    self.current_clip_frame_count = 0
+                    self.total_clip_frame_count = pie_chart_duration + pie_chart_hold_time*self.fps
+                    while self.current_clip_frame_count < self.total_clip_frame_count:
+                        if self.current_clip_frame_count < pie_chart_duration:
+                            frame = self.pie_chart.render_single_frame(data, colors, duration=pie_chart_duration, title="polling result", frame_index=self.current_clip_frame_count, player=False)
                         else:
-                            print(f"holding the pie chart for {frame_count - pie_chart_duration}/{pie_chart_hold_time*self.fps} frame")
+                            print(f"holding the pie chart for {self.current_clip_frame_count - pie_chart_duration}/{pie_chart_hold_time*self.fps} seconds")
                             frame = self.pie_chart.render_single_frame(data, colors, duration=pie_chart_duration, title="polling result", frame_index=pie_chart_duration, player=False)
                         # Scale the frame
                         frame = cv2.resize(frame, None, fx=self.screen_scale, fy=self.screen_scale)
                         cv2.imshow(self.window_name, frame)
                         cv2.waitKey(1)
-                        frame_count += 1
+                        # frame_count += 1
 
-                        # Check if video is near end
-                        total_frames = pie_chart_duration
-                        current_frame = frame_count
-                        time_remaining = (total_frames - current_frame) / self.fps
-                        if time_remaining <= self.is_video_reach_end_threshold:
-                            self.is_video_reach_end = True
-                        else:
-                            self.is_video_reach_end = False
+                        # Unified end detection using total duration
+                        frames_remaining = self.total_clip_frame_count - self.current_clip_frame_count
+                        time_remaining = frames_remaining / self.fps
+                        self.is_video_reach_end = time_remaining <= self.is_video_reach_end_threshold
+                        print(f"-----> time_remaining: {time_remaining} | threshold: {self.is_video_reach_end_threshold} | is_video_reach_end: {self.is_video_reach_end}")
+
+                        self.current_clip_frame_count += 1
 
                         # Check if next video needs immediate playback - TODO: we might not need this based on our design
                         if len(self.playlist) > 1 and self.playlist[1][1]:
@@ -103,6 +105,7 @@ class CV2Player:
 
                 else:
                     '''Normal case for video playback'''
+                    print(f"***** playing {video_path} *****")
                     cap = cv2.VideoCapture(video_path) # open the video
                     
                     if not cap.isOpened():
@@ -124,14 +127,10 @@ class CV2Player:
                         if not ret:
                             break
                         
-                        # Check if video is near end
-                        total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-                        current_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
-                        time_remaining = (total_frames - current_frame) / self.fps
-                        if time_remaining <= self.is_video_reach_end_threshold:
-                            self.is_video_reach_end = True
-                        else:
-                            self.is_video_reach_end = False
+                        # Unified end detection using total duration
+                        frames_remaining = self.total_clip_frame_count - self.current_clip_frame_count
+                        time_remaining = frames_remaining / self.fps
+                        self.is_video_reach_end = time_remaining <= self.is_video_reach_end_threshold
                         
                         # Add message overlay if within duration
                         # if self.message and time.time() - self.message_timestamp < self.message_duration:
@@ -173,10 +172,12 @@ class CV2Player:
                     # If there are more videos in playlist, remove the current one
                     # and continue to next video
                     self.playlist.pop(0)
+                    print(f"{len(self.playlist)} | videos left in playlist")
                 else:
                     # If this is the only video in playlist, keep it but set
                     # play_immediately flag to False so it loops continuously
                     self.playlist[0] = (video_path, False)
+                    print(f"{len(self.playlist)} | videos left in playlist | repeat the last video")
                     continue
             
             else:
@@ -196,6 +197,7 @@ class CV2Player:
             hold_time (int): number of seconds to hold the last frame
         """
         self.playlist.append((video_path, play_immediately))
+        # self.playlist = [(video_path, play_immediately)]
 
     def toggle_fullscreen(self):
         """Toggle fullscreen mode"""
