@@ -85,7 +85,7 @@ class CV2Player:
                     self.total_clip_frame_count = pie_chart_duration + pie_chart_hold_time*self.fps
                     while self.current_clip_frame_count < self.total_clip_frame_count:
                         if self.current_clip_frame_count < pie_chart_duration:
-                            frame = self.pie_chart.render_single_frame(data, colors, duration=pie_chart_duration, title="polling result", frame_index=self.current_clip_frame_count, player=False)
+                            frame = self.pie_chart.render_single_frame(data, colors, duration=pie_chart_duration, title="測試polling result", frame_index=self.current_clip_frame_count, player=False)
                         else:
                             print(f"holding the pie chart for {self.current_clip_frame_count - pie_chart_duration}/{pie_chart_hold_time*self.fps} seconds")
                             frame = self.pie_chart.render_single_frame(data, colors, duration=pie_chart_duration, title="polling result", frame_index=pie_chart_duration, player=False)

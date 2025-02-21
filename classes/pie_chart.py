@@ -4,6 +4,7 @@ import time
 import cv2
 import threading
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 class PieChart:
     def __init__(self, w=1920, h=1080):
         '''
@@ -93,7 +94,24 @@ class PieChart:
         text_x = 150  # Padding from left
         text_y = self.canvas_height // 2 + text_size[1] // 2  # Vertical center
         text_y = text_y + 300 # move the text down
-        cv2.putText(canvas, title, (text_x, text_y), font, font_scale, text_color, font_thickness)
+
+        # fontpath = "/Users/hammerchu/Desktop/DEV/Preface/Mall/classes/Microsoft_YaHei_Bold.ttf"
+        # font = ImageFont.truetype(fontpath, 32)
+
+        # Load Microsoft YaHei Bold font
+        font_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/classes/Microsoft_YaHei_Bold.ttf"
+        font_size = 80
+        img_pil = Image.fromarray(canvas)
+        draw = ImageDraw.Draw(img_pil)
+        font = ImageFont.truetype(font_path, font_size)
+        
+        # img_pil = Image.fromarray(img)
+        # draw = ImageDraw.Draw(img_pil)
+        b,g,r,a = 10,10,10,0
+        draw.text((text_x, text_y),  "睇吓其他人點睇！", font = font, fill = (b, g, r, a))
+        canvas = np.array(img_pil)
+
+        # cv2.putText(canvas, title, (text_x, text_y), font, font_scale, text_color, font_thickness)
         
         # Update output_frame to be the full canvas
         self.output_frame = canvas
