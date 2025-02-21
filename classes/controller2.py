@@ -44,9 +44,9 @@ class VideoController:
             self.eyes = None
         self.current_state = "A"  # Starting state
 
-        self.A_video_path = os.path.join(self.working_folder, "footages/A_8.mp4")
-        self.B_video_path = os.path.join(self.working_folder, "footages/B_8.mp4")
-        self.C_video_path = os.path.join(self.working_folder, "footages/C_8.mp4")
+        self.A_video_path = os.path.join(self.working_folder, "footages/A_leann_720.mp4")
+        self.B_video_path = os.path.join(self.working_folder, "footages/B_leann_720.mp4")
+        self.C_video_path = os.path.join(self.working_folder, "footages/C_leann_720.mp4")
         self.D_video_path = os.path.join(self.working_folder, "footages/D_8.mp4")
         print(f"A_video_path: {self.A_video_path}")
         print(f"B_video_path: {self.B_video_path}")
