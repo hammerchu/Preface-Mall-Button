@@ -46,6 +46,8 @@ class CV2Player:
         self.pie_is_baking = False
         self.performance_fps = 0
 
+        self.use_eyes = True
+
 
     def play_playlist(self):
         """Start playing videos from the playlist
@@ -150,6 +152,15 @@ class CV2Player:
                             cv2.putText(overlay, self.message, (30, height-30),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                             frame = cv2.addWeighted(overlay, 0.7, frame, 0.3, 0)
+
+                        if not self.use_eyes:
+                            # Draw grey circle indicator at upper right corner with 5% padding
+                            height, width = frame.shape[:2]
+                            padding_x = int(0.05 * width)  # 5% padding from right
+                            padding_y = int(0.05 * height)  # 5% padding from top
+                            circle_radius = 10
+                            circle_center = (width - padding_x, padding_y)
+                            cv2.circle(frame, circle_center, circle_radius, (128, 128, 128), -1)  # Filled grey circle
                             
                         # Scale the frame
                         # frame = cv2.resize(frame, None, fx=self.screen_scale, fy=self.screen_scale)

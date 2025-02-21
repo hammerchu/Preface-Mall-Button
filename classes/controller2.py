@@ -36,12 +36,7 @@ class VideoController:
             folder_path (str): Path to the folder containing video clips
         """
         self.working_folder = working_folder
-        # self.folder_path = folder_path
-        # self.eyes = Eyes()  # Initialize camera detection
-        if use_eyes:
-            self.eyes = Eyes(*eye_parms)
-        else:
-            self.eyes = None
+        
         self.current_state = "A"  # Starting state
 
         self.A_video_path = os.path.join(self.working_folder, "footages/A_leann_720.mp4")
@@ -68,6 +63,8 @@ class VideoController:
         self.is_changed_state = False
         self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
 
+        self.eyes_override = not use_eyes # if use_eyes is False, eyes_override is True
+
         self.pie_chart = PieChart()
         self.pie_ready = False
         self.statistic_video_path = os.path.join(self.working_folder, "tmp_pie_chart.mp4")
@@ -76,6 +73,11 @@ class VideoController:
         self.cv2_player = CV2Player([
             self.A_video_path,
         ], votes_file=self.votes_file) 
+        self.cv2_player.use_eyes = use_eyes
+        if self.cv2_player.use_eyes:
+            self.eyes = Eyes(*eye_parms)
+        else:
+            self.eyes = None
 
     def start(self):
         """
@@ -148,13 +150,25 @@ class VideoController:
                     self.cv2_player.add_video(self.D_video_path, play_immediately=True)
                 
                 '''Simulate eyes detection'''
-                if key.char == 'p':
-                    if not self.cam_active:
-                        print("pynput:p key pressed - simulate eyes detection ON")
-                        self.cam_active = True  
+                if key.char == 'p': # toggle eyes detection override
+                    if not self.cv2_player.use_eyes:
+                        if not self.eyes_override:
+                            print("pynput:0 key pressed - self.eyes_override ON")
+                            self.eyes_override = True  
+                        else:
+                            print("pynput:0 key pressed - self.eyes_override OFF")
+                            self.eyes_override = False
+
+                if key.char == '0': # toggle eyes detection mode
+                    if not self.cv2_player.use_eyes:
+                        print("pynput:0 key pressed - eyes detection MODE ON")
+                        self.cv2_player.use_eyes = True  # toggle the eyes detection mode to True
+                        self.eyes_override = False # reset the eyes_override flag to False
                     else:
-                        print("pynput:p key pressed - simulate eyes detection OFF")
-                        self.cam_active = False
+                        print("pynput:0 key pressed - eyes detection MODE OFF")
+                        self.cv2_player.use_eyes = False  # toggle the eyes detection mode to False
+                        self.eyes_override = False # reset the eyes_override flag to False
+
             except AttributeError:
                 pass
 
@@ -169,6 +183,11 @@ class VideoController:
         # time.sleep(3)
         count = 0
         while self.running:
+            if self.cv2_player.use_eyes:
+                self.cam_active = self.eyes.buffered_result # read cam activeness from the cv2_player
+            else:
+                self.cam_active = self.eyes_override # read cam activeness control by the pynput
+
             try:
                 print(f"STATE: {self.current_state} | CAM ACTIVE: {self.cam_active} | {self.cv2_player.current_clip_frame_count:.0f}/{self.cv2_player.total_clip_frame_count:.0f} REACH END: {self.cv2_player.is_video_reach_end} | LEN OF PLAYLIST: {len(self.cv2_player.playlist)} | IS CHANGED STATE: {self.is_changed_state}")
             except:
