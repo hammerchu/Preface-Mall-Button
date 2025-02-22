@@ -65,7 +65,7 @@ class VideoController:
 
         self.eyes_override = not use_eyes # if use_eyes is False, eyes_override is True
 
-        self.pie_chart = PieChart()
+        self.pie_chart = PieChart(1280, 720)
         self.pie_ready = False
         self.statistic_video_path = os.path.join(self.working_folder, "tmp_pie_chart.mp4")
         
