@@ -32,8 +32,17 @@ class PieChart:
 
     
     def render_single_frame(self, data:list[tuple[str, int]], colors:list[str], duration:int, title:str, frame_index:int, player=True):
+        '''
+        data: list of tuples (label, size) e.g. [('Apples', 50), ('Bananas', 0), ('Cherries', 10)]
+        colors: list of mpl compatible colors e.g. ['darkred', 'yellow', 'pink']
+        duration: duration of the animation in frames
+        title: title of the pie chart
+        frame_index: index of the frame to render
+        player: if True, display the frame in a cv2 window
+        '''
         self.duration = duration
         self.data = data
+        self.total_votes = sum(item[1] for item in data)
         self.colors = colors
         self.title = title
         self.labels = [item[0] for item in data]
@@ -108,13 +117,14 @@ class PieChart:
         else:
             font_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/classes/Microsoft_YaHei_Bold.ttf"
         # font_path = "classes/Microsoft_YaHei_Bold.ttf"
-        font_size = 80
+        font_size = 50
         img_pil = Image.fromarray(canvas)
         draw = ImageDraw.Draw(img_pil)
         font = ImageFont.truetype(font_path, font_size)
         
 
         b,g,r,a = 10,10,10,0
+        draw.text((text_x, text_y-70),  f"你係第{self.total_votes}個比意見既人", font = font, fill = (b, g, r, a))
         draw.text((text_x, text_y),  "睇吓其他人點睇！", font = font, fill = (b, g, r, a))
         canvas = np.array(img_pil)
 
