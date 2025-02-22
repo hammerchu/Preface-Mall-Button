@@ -116,7 +116,7 @@ class VideoController:
             # Added vote handling (TODO)
             try:
                 # Check if pressed key is one of the voting keys (Q, W, E)
-                if key.char.upper() in ['Q', 'W', 'E']:
+                if key.char.upper() in ['Q', 'W', 'E'] and self.current_state == 'B': # only when state B, Q, W, E are valid
                     current_time = time.time()
                     # Check if enough time has passed since last vote (prevents double voting)
                     if current_time - self.last_vote_time >= self.vote_cooldown:
@@ -249,9 +249,9 @@ class VideoController:
                     print("VOTE DETECTED - Transitioning from State B to State Statistics")
                    
 
+                    self.vote_active = False # reset the vote_active flag to False
                     self.cv2_player.add_video('pie_chart_render', play_immediately=True) # jump to statistics state, note that this is a special case, the video is not a file, but a label to trigger the pie chart render
                     self.current_state = 'STATISTICS'
-                    self.vote_active = False # reset the vote_active flag to False
                     self.is_changed_state = True
                     self.state_counter = 0 # set the state counter to 0, its for delay reset of the is_changed_state flag
 
@@ -262,6 +262,7 @@ class VideoController:
                     '''
                     print("CAMERA ACTIVE - Transitioning from State B to State C")
                     
+                    self.vote_active = False # reset the vote_active flag to False
                     self.cv2_player.add_video(self.C_video_path, play_immediately=False)
                     self.current_state = 'C'
                     self.is_changed_state = True
@@ -272,6 +273,7 @@ class VideoController:
                     If NO vote and camera is INACTIVE,
                     Transitions from State B to State A when the video is near end.
                     '''
+                    self.vote_active = False # reset the vote_active flag to False
                     print("CAMERA INACTIVE - Transitioning from State B to State A")
                     self.cv2_player.add_video(self.A_video_path, play_immediately=False)
                     self.current_state = 'A'
@@ -450,7 +452,7 @@ if __name__ == "__main__":
     mall_dir = os.path.dirname(current_dir)
     
     #Eyes
-    eyes_fps = 0.5
+    eyes_fps = 1
     eyes_scale = 1
     eyes_buffer_size = 3
     eyes_result_threshold = 2

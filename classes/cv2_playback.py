@@ -148,8 +148,8 @@ class CV2Player:
                         if self.message:
                             height, width = frame.shape[:2]
                             overlay = frame.copy()
-                            cv2.rectangle(overlay, (10, height-60), (width-10, height-10), (0, 0, 0), -1)
-                            cv2.putText(overlay, self.message, (30, height-30),
+                            cv2.rectangle(overlay, (10, 10), (width-500, 60), (0, 0, 0), -1)
+                            cv2.putText(overlay, self.message, (30, 40),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                             frame = cv2.addWeighted(overlay, 0.7, frame, 0.3, 0)
 
