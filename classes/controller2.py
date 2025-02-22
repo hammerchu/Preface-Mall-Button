@@ -56,7 +56,7 @@ class VideoController:
         self.statistics_duration = 10  # Duration to show statistics in seconds
         self.votes_file = os.path.join(self.working_folder, "data/votes.txt")
         self.last_vote_time = 0
-        self.vote_cooldown = 1  # 1 second cooldown between votes
+        self.vote_cooldown = 7  # 1 second cooldown between votes
         open(self.votes_file, 'a').close()  # Create file if not exists
         self.cam_detection_buffer = []
         self.cam_threshold = 3 # NEW
