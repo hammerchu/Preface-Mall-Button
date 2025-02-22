@@ -5,6 +5,7 @@ import cv2
 import threading
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import os
 class PieChart:
     def __init__(self, w=1920, h=1080):
         '''
@@ -99,14 +100,20 @@ class PieChart:
         # font = ImageFont.truetype(fontpath, 32)
 
         # Load Microsoft YaHei Bold font
-        font_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/classes/Microsoft_YaHei_Bold.ttf"
+        # Get system font path for Microsoft YaHei Bold on Linux
+        if os.name == 'posix':  # Linux/Unix
+            font_path = "/usr/share/fonts/truetype/msttcorefonts/Microsoft_YaHei_Bold.ttf"
+            if not os.path.exists(font_path):
+                font_path = "./classes/Microsoft_YaHei_Bold.ttf"  # Fallback to local path
+        else:
+            font_path = "/Users/hammerchu/Desktop/DEV/Preface/Mall/classes/Microsoft_YaHei_Bold.ttf"
+        # font_path = "classes/Microsoft_YaHei_Bold.ttf"
         font_size = 80
         img_pil = Image.fromarray(canvas)
         draw = ImageDraw.Draw(img_pil)
         font = ImageFont.truetype(font_path, font_size)
         
-        # img_pil = Image.fromarray(img)
-        # draw = ImageDraw.Draw(img_pil)
+
         b,g,r,a = 10,10,10,0
         draw.text((text_x, text_y),  "睇吓其他人點睇！", font = font, fill = (b, g, r, a))
         canvas = np.array(img_pil)
